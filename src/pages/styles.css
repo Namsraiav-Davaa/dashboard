@@ -4,6 +4,21 @@
     flex-direction: column;
     overflow: auto;
 }
+
+.box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 30px;
+    cursor: pointer;
+    padding: 3px;
+    border-radius: 3px;
+ }
+
+ .box:hover {
+    background-color: #cacaca;
+ }
+
 .dashboard-content-container {
     margin: 1em;
     background-color: white;

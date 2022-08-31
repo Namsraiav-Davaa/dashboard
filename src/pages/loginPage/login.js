@@ -12,6 +12,8 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { UserContext } from "../../userContext";
+import { useNavigate } from "react-router-dom";
 
 function Copyright(props) {
   return (
@@ -34,6 +36,8 @@ function Copyright(props) {
 const theme = createTheme();
 
 export default function SignIn() {
+  const navigate = useNavigate();
+  const { setUser } = React.useContext(UserContext);
   const handleSubmit = (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -56,6 +60,8 @@ export default function SignIn() {
       .then((response) => response.json())
       .then((data) => {
         console.log("data >> ", data);
+        setUser(data);
+        navigate("/", { replace: true });
         if (data.status === "UNSUCCESS") {
           //   setError(true);
         } else if (data.userId) {

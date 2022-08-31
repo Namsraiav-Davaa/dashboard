@@ -68,9 +68,9 @@ export default function SignUp() {
     const requestOptions = {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "*",
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        // "Access-Control-Allow-Origin": "*",
+        // "Access-Control-Allow-Headers": "*",
         "uw-auth-token": "dk4EGjhk91h7ejLNLq4Ogdfgd@#$sdfIJk5jlf690g",
       },
       body: JSON.stringify({

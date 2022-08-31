@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import { useLocation } from 'react-router-dom';
 
 import SideBarItem from './sidebar-item';
@@ -6,9 +6,11 @@ import SideBarItem from './sidebar-item';
 import './styles.css';
 import logo from '../../assets/images/white-logo.png';
 import LogoutIcon from '../../assets/icons/logout.svg';
+import { UserContext } from '../../userContext';
 
 function SideBar ({ menu }) {
     const location = useLocation();
+    const {setUser} = useContext(UserContext);
 
     const [active, setActive] = useState(1);
 
@@ -28,9 +30,9 @@ function SideBar ({ menu }) {
         <nav className='sidebar'>
             <div className='sidebar-container'>
                 <div className='sidebar-logo-container'>
-                    <img
+                    {/* <img
                         src={logo}
-                        alt="logo" />
+                        alt="logo" /> */}
                 </div>
 
                 <div className='sidebar-container'>
@@ -44,7 +46,7 @@ function SideBar ({ menu }) {
                         ))}
                     </div>
 
-                    <div className='sidebar-footer'>
+                    <div onClick={() => setUser(null)} className='sidebar-footer'>
                         <span className='sidebar-item-label'>Logout</span>
                         <img 
                             src={LogoutIcon}

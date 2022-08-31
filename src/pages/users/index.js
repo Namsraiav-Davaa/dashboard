@@ -1,123 +1,19 @@
 import React, { useState, useEffect, useCallback, useContext } from "react";
 import DashboardHeader from "../../components/DashboardHeader";
+
 import all_orders from "../../constants/orders";
 import { calculateRange, sliceData } from "../../utils/table-pagination";
-import SmileIcon from "@material-ui/icons/Edit";
+
 import "../styles.css";
 import { UserContext } from "../../userContext";
-import Modal from "@mui/material/Modal";
-import Box from "@mui/material/Box";
-import TextField from "@mui/material/TextField";
-import LoadingButton from "@mui/lab/LoadingButton";
 
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: 400,
-  bgcolor: "background.paper",
-  boxShadow: 24,
-  borderRadius: 5,
-  pt: 2,
-  px: 4,
-  pb: 3,
-};
-
-const InstertModal = ({ isVisble, handleClose }) => {
-  const [loading, setLoading] = useState(false);
-  const [loot, setLoot] = useState('');
-  const [category, setCategory] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const { user } = useContext(UserContext);
-  const addItem = () => {
-    setLoading(true);
-    console.log('loot :>> ', loot, category, quantity);
-    fetch("https://dev.theherowarsguys.com/api/lootbox/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${user.access}`,
-      },
-      body: JSON.stringify({
-        lootbox: loot,
-        category,
-        quantity,
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("data :>> ", data);
-        handleClose();
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
-      });
-  };
-  return (
-    <Modal
-      onBackdropClick={handleClose}
-      open={isVisble}
-      onClose={handleClose}
-      aria-labelledby="child-modal-title"
-      aria-describedby="child-modal-description"
-    >
-      <Box sx={{ ...style, width: 500 }}>
-        <h2 id="child-modal-title">Create new item</h2>
-        <TextField
-          margin="normal"
-          required
-          value={loot}
-          onChange={(e) => setLoot(e.target.value)}
-          fullWidth
-          id="lootbox"
-          label="lootbox"
-          name="Lootbox"
-          autoComplete="false"
-          autoFocus
-        />
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          name="category"
-          label="Category"
-          id="category"
-        />
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          value={quantity}
-          onChange={(e) => setQuantity(e.target.value)}
-          name="quantity"
-          label="Quantity"
-          id="quantity"
-        />
-        <LoadingButton
-          onClick={addItem}
-          style={{ marginTop: 10 }}
-          loading={loading}
-          variant="outlined"
-        >
-          insert item
-        </LoadingButton>
-      </Box>
-    </Modal>
-  );
-};
-
-function Orders() {
+function Users() {
   const [search, setSearch] = useState("");
   const [lootBoxes, setLootBoxes] = useState([]);
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState([]);
   const [selected, setSelected] = useState("ID");
   const { user } = useContext(UserContext);
-  const [instertVisible, setIntsertVisible] = useState(false);
 
   const getResponse = useCallback(async () => {
     const requestOptions = {
@@ -128,20 +24,20 @@ function Orders() {
       },
     };
     const response = await fetch(
-      "https://dev.theherowarsguys.com/api/lootboxes",
+      "https://dev.theherowarsguys.com/api/users",
       requestOptions
     );
     const data = await response.json();
-    console.log('data :>> ', data);
+    console.log("data :>> ", data);
     return data;
   }, [user.access]);
 
   useEffect(() => {
     getResponse().then((data) => {
-      setPagination(calculateRange(data.lootboxes, data.perPage));
-      setLootBoxes(sliceData(data.lootboxes, page, data.perPage));
+      setPagination(calculateRange(data.user, data.perPage));
+      setLootBoxes(sliceData(data.user, page, data.perPage));
     });
-  }, [getResponse, page, instertVisible]);
+  }, [getResponse, page]);
 
   // Search
   const __handleSearch = (event) => {
@@ -171,6 +67,8 @@ function Orders() {
               .toLowerCase()
               .includes(event.target.value.toLowerCase())
         );
+        console.log("search_results :>> ", search_results);
+        console.log("search :>> ", search);
       } else if (selected === "PRODUCT") {
         search_results = lootBoxes.filter((item) =>
           item.product.toLowerCase().includes(event.target.value.toLowerCase())
@@ -180,6 +78,7 @@ function Orders() {
           item.price.toLowerCase().includes(event.target.value.toLowerCase())
         );
       }
+      console.log("search_results :>> ", search_results);
       setLootBoxes([...search_results]);
     } else {
       __handleChangePage(1);
@@ -194,34 +93,64 @@ function Orders() {
 
   return (
     <div className="dashboard-content">
-      <DashboardHeader
-        onClick={() => setIntsertVisible(true)}
-        btnText="New item"
-      />
-      <InstertModal
-        handleClose={() => setIntsertVisible(false)}
-        isVisble={instertVisible}
-      />
+      <DashboardHeader btnText="New User" />
+
       <div className="dashboard-content-container">
         <div className="dashboard-content-header">
-          <h2>Loot boxes</h2>
-          <div></div>
+          <h2>Users</h2>
+          <div>
+            {/* <select
+              className="selector-drop"
+              value={selected}
+              onChange={(e) => setSelected(e.target.value)}
+              name="cars"
+              id="cars"
+            >
+              <option value="ID">ID</option>
+              <option value="DATE">DATE</option>
+              <option value="STATUS">STATUS</option>
+              <option value="CUSTOMER">CUSTOMER</option>
+              <option value="PRODUCT">PRODUCT</option>
+              <option value="REVENUE">REVENUE</option>
+            </select>
+
+            <div className="dashboard-content-search">
+              <input
+                type="text"
+                value={search}
+                placeholder="Search.."
+                className="dashboard-content-input"
+                onChange={(e) => __handleSearch(e)}
+              />
+            </div> */}
+          </div>
         </div>
 
         <table>
           <thead>
-            <th>ID</th>
-            <th>CATEGORY</th>
-            <th>ITEM</th>
-            <th>LOOTBOX</th>
-            <th>QUANTITY</th>
-            <th>DATE</th>
-            <th>EDIT</th>
+            <th>No</th>
+            <th>email</th>
+            <th>first name</th>
+            <th>is active</th>
+            <th>last name</th>
+            <th>phone</th>
+            <th>date</th>
           </thead>
 
           <thead>
             <th>
-              <span>FILTERS</span>
+              <span>#</span>
+            </th>
+            <th>
+              <div className="dashboard-content-search">
+                <input
+                  type="text"
+                  value={search}
+                  placeholder="Search.."
+                  className="dashboard-content-input"
+                  onChange={(e) => __handleSearch(e)}
+                />
+              </div>
             </th>
             <th>
               <div className="dashboard-content-search">
@@ -274,36 +203,34 @@ function Orders() {
 
           {lootBoxes.length !== 0 ? (
             <tbody>
-              {lootBoxes.map((order, index) => (
+              {lootBoxes.map((item, index) => (
                 <tr key={index}>
                   <td>
                     <span>{index + 1}</span>
                   </td>
                   <td>
-                    <span>{order.category}</span>
+                    <span>{item.email}</span>
                   </td>
                   <td>
-                    <span>{order.item}</span>
+                    <span>{item.first_name}</span>
                   </td>
                   <td>
-                    <span>{order.lootbox}</span>
+                    <span>{item.is_active.toString()}</span>
                   </td>
                   <td>
-                    <span>{order.quantity}</span>
+                    <span>{item.last_name}</span>
+                  </td>
+                  <td>
+                    <span>{item.phone}</span>
                   </td>
                   <td>
                     <span>
-                      {new Date(order.created_at).getFullYear() +
+                      {new Date(item.date_joined).getFullYear() +
                         "-" +
-                        (new Date(order.created_at).getMonth() + 1) +
+                        (new Date(item.date_joined).getMonth() + 1) +
                         "-" +
-                        new Date(order.created_at).getDate()}
+                        new Date(item.date_joined).getDate()}
                     </span>
-                  </td>
-                  <td>
-                    <div onClick={() => alert("11")}>
-                      <SmileIcon className="box" htmlColor="gray" />
-                    </div>
                   </td>
                 </tr>
               ))}
@@ -333,4 +260,4 @@ function Orders() {
   );
 }
 
-export default Orders;
+export default Users;

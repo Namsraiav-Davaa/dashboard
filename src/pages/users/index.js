@@ -1,11 +1,286 @@
 import React, { useState, useEffect, useCallback, useContext } from "react";
 import DashboardHeader from "../../components/DashboardHeader";
-
+import Modal from "@mui/material/Modal";
 import all_orders from "../../constants/orders";
 import { calculateRange, sliceData } from "../../utils/table-pagination";
-
+import Box from "@mui/material/Box";
+import TextField from "@mui/material/TextField";
 import "../styles.css";
 import { UserContext } from "../../userContext";
+import { LoadingButton } from "@mui/lab";
+import SmileIcon from "@material-ui/icons/Edit";
+
+const style = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: 400,
+  bgcolor: "background.paper",
+  boxShadow: 24,
+  borderRadius: 5,
+  pt: 2,
+  px: 4,
+  pb: 3,
+};
+
+const InstertModal = ({ isVisble, handleClose }) => {
+  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [first_name, setFirst_name] = useState("");
+  const [last_name, setLast_name] = useState("");
+  const [password1, setPassword1] = useState("");
+  const [password2, setPassword2] = useState("");
+  const addItem = () => {
+    setLoading(true);
+    fetch("https://dev.theherowarsguys.com/api/user/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "uw-auth-token": `dk4EGjhk91h7ejLNLq4Ogdfgd@#$sdfIJk5jlf690g`,
+      },
+      body: JSON.stringify({
+        email,
+        phone,
+        password1,
+        password2,
+        first_name,
+        last_name,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status == "UNSUCCESS") {
+          alert("please check your information");
+        }
+        handleClose();
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
+  };
+  return (
+    <Modal
+      onBackdropClick={handleClose}
+      open={isVisble}
+      onClose={handleClose}
+      aria-labelledby="child-modal-title"
+      aria-describedby="child-modal-description"
+    >
+      <Box sx={{ ...style, width: 500 }}>
+        <h2 id="child-modal-title">Create new user</h2>
+        <TextField
+          autoComplete="given-name"
+          name="firstName"
+          margin="normal"
+          value={first_name}
+          onChange={(e) => setFirst_name(e.target.value)}
+          required
+          fullWidth
+          // id="firstName"
+          label="First Name"
+          autoFocus
+        />
+        <TextField
+          required
+          margin="normal"
+          fullWidth
+          value={last_name}
+          onChange={(e) => setLast_name(e.target.value)}
+          // id="lastName"
+          label="Last Name"
+          name="lastName"
+          autoComplete="family-name"
+        />
+        <TextField
+          required
+          margin="normal"
+          fullWidthvalue={email}
+          onChange={(e) => setEmail(e.target.value)}
+          // id="email"
+          label="Email Address"
+          name="email"
+          autoComplete="email"
+        />
+        <TextField
+          required
+          fullWidth
+          // id="phone"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          label="Phone"
+          margin="normal"
+          name="phone"
+          autoComplete="phone"
+        />
+        <TextField
+          required
+          fullWidth
+          value={password1}
+          onChange={(e) => setPassword1(e.target.value)}
+          name="password1"
+          label="Password"
+          margin="normal"
+          type="password"
+          // id="password1"
+          autoComplete="new-password"
+        />
+        <TextField
+          required
+          value={password2}
+          onChange={(e) => setPassword2(e.target.value)}
+          fullWidth
+          name="password2"
+          label="Password repeat"
+          margin="normal"
+          type="password"
+          // id="password2"
+          autoComplete="new-password"
+        />
+        <LoadingButton
+          onClick={addItem}
+          style={{ marginTop: 10 }}
+          loading={loading}
+          variant="outlined"
+        >
+          instert user
+        </LoadingButton>
+      </Box>
+    </Modal>
+  );
+};
+
+const UpdateModal = ({ isVisble, handleClose, data }) => {
+  console.log("data :>> ", data);
+  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState(data.email);
+  const [phone, setPhone] = useState(data.phone);
+  const [first_name, setFirst_name] = useState(data.first_name);
+  const [last_name, setLast_name] = useState(data.last_name);
+  const { user } = useContext(UserContext);
+  // const [password1, setPassword1] = useState("");
+  // const [password2, setPassword2] = useState("");
+  const addItem = () => {
+    setLoading(true);
+    fetch(`https://dev.theherowarsguys.com/api/user/${data.user_id}/edit`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.access}`,
+      },
+      body: JSON.stringify({
+        email,
+        phone,
+        first_name,
+        last_name,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("data :>> ", data);
+        if (data.status == "UNSUCCESS") {
+          alert("please check your information");
+        }
+        handleClose();
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
+  };
+  return (
+    <Modal
+      onBackdropClick={handleClose}
+      open={isVisble}
+      onClose={handleClose}
+      aria-labelledby="child-modal-title"
+      aria-describedby="child-modal-description"
+    >
+      <Box sx={{ ...style, width: 500 }}>
+        <h2 id="child-modal-title">Edit user</h2>
+        <TextField
+          autoComplete="given-name"
+          name="firstName"
+          margin="normal"
+          value={first_name}
+          onChange={(e) => setFirst_name(e.target.value)}
+          required
+          fullWidth
+          // id="firstName"
+          label="First Name"
+          autoFocus
+        />
+        <TextField
+          required
+          margin="normal"
+          fullWidth
+          value={last_name}
+          onChange={(e) => setLast_name(e.target.value)}
+          // id="lastName"
+          label="Last Name"
+          name="lastName"
+          autoComplete="family-name"
+        />
+        <TextField
+          required
+          fullWidth
+          margin="normal"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          // id="email"
+          label="Email Address"
+          name="email"
+          autoComplete="email"
+        />
+        <TextField
+          required
+          fullWidth
+          // id="phone"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          label="Phone"
+          margin="normal"
+          name="phone"
+          autoComplete="phone"
+        />
+        {/* <TextField
+          required
+          fullWidth
+          value={password1}
+          onChange={(e) => setPassword1(e.target.value)}
+          name="password1"
+          label="Password"
+          margin="normal"
+          type="password"
+          // id="password1"
+          autoComplete="new-password"
+        />
+        <TextField
+          required
+          value={password2}
+          onChange={(e) => setPassword2(e.target.value)}
+          fullWidth
+          name="password2"
+          label="Password repeat"
+          margin="normal"
+          type="password"
+          // id="password2"
+          autoComplete="new-password"
+        /> */}
+        <LoadingButton
+          onClick={addItem}
+          style={{ marginTop: 10 }}
+          loading={loading}
+          variant="outlined"
+        >
+          edit user
+        </LoadingButton>
+      </Box>
+    </Modal>
+  );
+};
 
 function Users() {
   const [search, setSearch] = useState("");
@@ -14,6 +289,13 @@ function Users() {
   const [pagination, setPagination] = useState([]);
   const [selected, setSelected] = useState("ID");
   const { user } = useContext(UserContext);
+  const [insertVisible, setInsertVisible] = useState(false);
+  const [updateVisible, setUpdateVisible] = useState(false);
+  const [updateItem, setUpdateItem] = useState();
+  const [email, setEmail] = useState("");
+  const [first_name, setFirst_name] = useState("");
+  const [last_name, setLast_name] = useState("");
+  const [phone, setPhone] = useState("");
 
   const getResponse = useCallback(async () => {
     const requestOptions = {
@@ -23,107 +305,55 @@ function Users() {
         Authorization: `Bearer ${user.access}`,
       },
     };
+    const pager =
+      email == "" && first_name == "" && last_name == "" && phone == ""
+        ? page
+        : 1;
     const response = await fetch(
-      "https://dev.theherowarsguys.com/api/users",
+      `https://dev.theherowarsguys.com/api/users?page=${pager}&email=${email}&firstName=${first_name}&lastName=${last_name}&phone=${phone}`,
       requestOptions
     );
     const data = await response.json();
     console.log("data :>> ", data);
     return data;
-  }, [user.access]);
+  }, [email, first_name, last_name, page, phone, user.access]);
 
   useEffect(() => {
     getResponse().then((data) => {
-      setPagination(calculateRange(data.user, data.perPage));
-      setLootBoxes(sliceData(data.user, page, data.perPage));
+      setPagination(calculateRange(data.pageTotal));
+      setLootBoxes(data.user);
+      setPage(data.page);
     });
-  }, [getResponse, page]);
+  }, [getResponse, page, insertVisible]);
 
   // Search
-  const __handleSearch = (event) => {
-    setSearch(event.target.value);
-    if (event.target.value !== "") {
-      let search_results = [];
-      if (selected === "ID") {
-        search_results = lootBoxes.filter((item) =>
-          item.id.toLowerCase().includes(event.target.value.toLowerCase())
-        );
-      } else if (selected === "DATE") {
-        search_results = lootBoxes.filter((item) =>
-          item.date.toLowerCase().includes(event.target.value.toLowerCase())
-        );
-      } else if (selected === "STATUS") {
-        search_results = lootBoxes.filter((item) =>
-          item.status.toLowerCase().includes(event.target.value.toLowerCase())
-        );
-      } else if (selected === "CUSTOMER") {
-        console.log("ccccc");
-        search_results = lootBoxes.filter(
-          (item) =>
-            item.last_name
-              .toLowerCase()
-              .includes(event.target.value.toLowerCase()) ||
-            item.first_name
-              .toLowerCase()
-              .includes(event.target.value.toLowerCase())
-        );
-        console.log("search_results :>> ", search_results);
-        console.log("search :>> ", search);
-      } else if (selected === "PRODUCT") {
-        search_results = lootBoxes.filter((item) =>
-          item.product.toLowerCase().includes(event.target.value.toLowerCase())
-        );
-      } else if (selected === "REVENUE") {
-        search_results = lootBoxes.filter((item) =>
-          item.price.toLowerCase().includes(event.target.value.toLowerCase())
-        );
-      }
-      console.log("search_results :>> ", search_results);
-      setLootBoxes([...search_results]);
-    } else {
-      __handleChangePage(1);
-    }
-  };
 
   // Change Page
   const __handleChangePage = (new_page) => {
     setPage(new_page);
-    setLootBoxes(sliceData(all_orders, new_page, 5));
   };
 
   return (
     <div className="dashboard-content">
-      <DashboardHeader btnText="New User" />
-
+      <DashboardHeader
+        onClick={() => setInsertVisible(true)}
+        btnText="New User"
+      />
+      <InstertModal
+        isVisble={insertVisible}
+        handleClose={() => setInsertVisible(false)}
+      />
+      {updateVisible && (
+        <UpdateModal
+          isVisble={updateVisible}
+          data={updateItem}
+          handleClose={() => setUpdateVisible(false)}
+        />
+      )}
       <div className="dashboard-content-container">
         <div className="dashboard-content-header">
           <h2>Users</h2>
-          <div>
-            {/* <select
-              className="selector-drop"
-              value={selected}
-              onChange={(e) => setSelected(e.target.value)}
-              name="cars"
-              id="cars"
-            >
-              <option value="ID">ID</option>
-              <option value="DATE">DATE</option>
-              <option value="STATUS">STATUS</option>
-              <option value="CUSTOMER">CUSTOMER</option>
-              <option value="PRODUCT">PRODUCT</option>
-              <option value="REVENUE">REVENUE</option>
-            </select>
-
-            <div className="dashboard-content-search">
-              <input
-                type="text"
-                value={search}
-                placeholder="Search.."
-                className="dashboard-content-input"
-                onChange={(e) => __handleSearch(e)}
-              />
-            </div> */}
-          </div>
+          <div></div>
         </div>
 
         <table>
@@ -135,6 +365,7 @@ function Users() {
             <th>last name</th>
             <th>phone</th>
             <th>date</th>
+            <th>edit</th>
           </thead>
 
           <thead>
@@ -145,10 +376,10 @@ function Users() {
               <div className="dashboard-content-search">
                 <input
                   type="text"
-                  value={search}
+                  value={email}
                   placeholder="Search.."
                   className="dashboard-content-input"
-                  onChange={(e) => __handleSearch(e)}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
             </th>
@@ -156,10 +387,22 @@ function Users() {
               <div className="dashboard-content-search">
                 <input
                   type="text"
-                  value={search}
+                  value={first_name}
                   placeholder="Search.."
                   className="dashboard-content-input"
-                  onChange={(e) => __handleSearch(e)}
+                  onChange={(e) => setFirst_name(e.target.value)}
+                />
+              </div>
+            </th>
+            <th></th>
+            <th>
+              <div className="dashboard-content-search">
+                <input
+                  type="text"
+                  value={last_name}
+                  placeholder="Search.."
+                  className="dashboard-content-input"
+                  onChange={(e) => setLast_name(e.target.value)}
                 />
               </div>
             </th>
@@ -167,32 +410,10 @@ function Users() {
               <div className="dashboard-content-search">
                 <input
                   type="text"
-                  value={search}
+                  value={phone}
                   placeholder="Search.."
                   className="dashboard-content-input"
-                  onChange={(e) => __handleSearch(e)}
-                />
-              </div>
-            </th>
-            <th>
-              <div className="dashboard-content-search">
-                <input
-                  type="text"
-                  value={search}
-                  placeholder="Search.."
-                  className="dashboard-content-input"
-                  onChange={(e) => __handleSearch(e)}
-                />
-              </div>
-            </th>
-            <th>
-              <div className="dashboard-content-search">
-                <input
-                  type="text"
-                  value={search}
-                  placeholder="Search.."
-                  className="dashboard-content-input"
-                  onChange={(e) => __handleSearch(e)}
+                  onChange={(e) => setPhone(e.target.value)}
                 />
               </div>
             </th>
@@ -231,6 +452,16 @@ function Users() {
                         "-" +
                         new Date(item.date_joined).getDate()}
                     </span>
+                  </td>
+                  <td>
+                    <div
+                      onClick={() => {
+                        setUpdateItem(item);
+                        setUpdateVisible(true);
+                      }}
+                    >
+                      <SmileIcon className="box" htmlColor="gray" />
+                    </div>
                   </td>
                 </tr>
               ))}

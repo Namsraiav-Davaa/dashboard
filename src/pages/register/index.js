@@ -65,28 +65,27 @@ export default function SignUp() {
       password1: data.get("password1"),
       password2: data.get("password2"),
     });
-    const requestOptions = {
+    const body = {
+      email: data.get("email"),
+      phone: data.get("phone"),
+      first_name: data.get("firstName"),
+      last_name: data.get("lastName"),
+      password1: data.get("password1"),
+      password2: data.get("password2"),
+    };
+    console.log("body :>> ", body);
+    fetch("https://dev.theherowarsguys.com/api/user/register", {
       method: "POST",
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-        // "Access-Control-Allow-Origin": "*",
-        // "Access-Control-Allow-Headers": "*",
-        "uw-auth-token": "dk4EGjhk91h7ejLNLq4Ogdfgd@#$sdfIJk5jlf690g",
+        "Content-Type": "application/json",
+        "uw-auth-token": `dk4EGjhk91h7ejLNLq4Ogdfgd@#$sdfIJk5jlf690g`,
       },
-      body: JSON.stringify({
-        email: data.get("email"),
-        phone: data.get("phone"),
-        first_name: data.get("firstName"),
-        last_name: data.get("lastName"),
-        password1: data.get("password1"),
-        password2: data.get("password2"),
-      }),
-    };
-    fetch("https://dev.theherowarsguys.com/api/user/register", requestOptions)
-      .then((response) => response.json())
+      body: JSON.stringify(body),
+    })
+      .then((res) => res.json())
       .then((data) => {
         console.log("data >> ", data);
-        if (data.status === "UNSUCCESS") {
+        if (data.status == "UNSUCCESS") {
           setError(true);
         } else if (data.userId) {
           setSuccess(true);
@@ -94,7 +93,33 @@ export default function SignUp() {
             navigate("/login", { replace: true });
           }, 2000);
         }
+      })
+      .catch(() => {
+        setError(true);
       });
+    // const requestOptions = {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+    //     // "Access-Control-Allow-Origin": "*",
+    //     // "Access-Control-Allow-Headers": "*",
+    //     "uw-auth-token": "dk4EGjhk91h7ejLNLq4Ogdfgd@#$sdfIJk5jlf690g",
+    //   },
+    //   body: JSON.stringify(body),
+    // };
+    // fetch("https://dev.theherowarsguys.com/api/user/register", requestOptions)
+    //   .then((response) => response.json())
+    //   .then((data) => {
+    //     console.log("data >> ", data);
+    //     if (data.status === "UNSUCCESS") {
+    //       setError(true);
+    //     } else if (data.userId) {
+    //       setSuccess(true);
+    //       setTimeout(() => {
+    //         navigate("/login", { replace: true });
+    //       }, 2000);
+    //     }
+    //   });
   };
 
   return (

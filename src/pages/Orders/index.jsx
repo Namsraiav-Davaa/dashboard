@@ -26,13 +26,12 @@ const style = {
 
 const InstertModal = ({ isVisble, handleClose }) => {
   const [loading, setLoading] = useState(false);
-  const [loot, setLoot] = useState('');
-  const [category, setCategory] = useState('');
-  const [quantity, setQuantity] = useState('');
+  const [loot, setLoot] = useState("");
+  const [category, setCategory] = useState("");
+  const [quantity, setQuantity] = useState("");
   const { user } = useContext(UserContext);
   const addItem = () => {
     setLoading(true);
-    console.log('loot :>> ', loot, category, quantity);
     fetch("https://dev.theherowarsguys.com/api/lootbox/register", {
       method: "POST",
       headers: {
@@ -47,7 +46,6 @@ const InstertModal = ({ isVisble, handleClose }) => {
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log("data :>> ", data);
         handleClose();
         setLoading(false);
       })
@@ -110,6 +108,90 @@ const InstertModal = ({ isVisble, handleClose }) => {
   );
 };
 
+const UpdateModal = ({ isVisble, handleClose, data }) => {
+  const [loading, setLoading] = useState(false);
+  const [loot, setLoot] = useState(data.lootbox);
+  const [category, setCategory] = useState(data.category);
+  const [quantity, setQuantity] = useState(data.quantity);
+  const { user } = useContext(UserContext);
+  const addItem = () => {
+    setLoading(true);
+    fetch(`https://dev.theherowarsguys.com/api/lootbox/${data.lootbox_id}/edit`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.access}`,
+      },
+      body: JSON.stringify({
+        lootbox: loot,
+        category,
+        quantity,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        handleClose();
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
+  };
+  return (
+    <Modal
+      onBackdropClick={handleClose}
+      open={isVisble}
+      onClose={handleClose}
+      aria-labelledby="child-modal-title"
+      aria-describedby="child-modal-description"
+    >
+      <Box sx={{ ...style, width: 500 }}>
+        <h2 id="child-modal-title">Update item</h2>
+        <TextField
+          margin="normal"
+          required
+          value={loot}
+          onChange={(e) => setLoot(e.target.value)}
+          fullWidth
+          id="lootbox"
+          label="lootbox"
+          name="Lootbox"
+          autoComplete="false"
+          autoFocus
+        />
+        <TextField
+          margin="normal"
+          required
+          fullWidth
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          name="category"
+          label="Category"
+          id="category"
+        />
+        <TextField
+          margin="normal"
+          required
+          fullWidth
+          value={quantity}
+          onChange={(e) => setQuantity(e.target.value)}
+          name="quantity"
+          label="Quantity"
+          id="quantity"
+        />
+        <LoadingButton
+          onClick={addItem}
+          style={{ marginTop: 10 }}
+          loading={loading}
+          variant="outlined"
+        >
+          update
+        </LoadingButton>
+      </Box>
+    </Modal>
+  );
+};
+
 function Orders() {
   const [search, setSearch] = useState("");
   const [lootBoxes, setLootBoxes] = useState([]);
@@ -118,7 +200,12 @@ function Orders() {
   const [selected, setSelected] = useState("ID");
   const { user } = useContext(UserContext);
   const [instertVisible, setIntsertVisible] = useState(false);
-
+  const [updateVisible, setUpdatevisible] = useState(false);
+  const [updateData, setUpdateData] = useState();
+  const [category, setCategory] = useState('');
+  const [lootbox, setLootbox] = useState('');
+  const [quantityFrom, setQuantityFrom] = useState('');
+  const [quantityTo, setQuantityTo] = useState('');
   const getResponse = useCallback(async () => {
     const requestOptions = {
       method: "GET",
@@ -127,64 +214,22 @@ function Orders() {
         Authorization: `Bearer ${user.access}`,
       },
     };
+    const pager = category == '' && lootbox == '' ? page : 1;
     const response = await fetch(
-      "https://dev.theherowarsguys.com/api/lootboxes",
+      `https://dev.theherowarsguys.com/api/lootboxes?page=${pager}&category=${category}&lootbox=${lootbox}${quantityFrom != '' ? `&quantityFrom=${quantityFrom}` : ''}${quantityTo != '' ? `&quantityTo=${quantityTo}` : ''}`,
       requestOptions
     );
     const data = await response.json();
-    console.log('data :>> ', data);
     return data;
-  }, [user.access]);
+  }, [page, user.access, category, lootbox, quantityFrom, quantityTo]);
 
   useEffect(() => {
     getResponse().then((data) => {
-      setPagination(calculateRange(data.lootboxes, data.perPage));
-      setLootBoxes(sliceData(data.lootboxes, page, data.perPage));
+      setPagination(calculateRange(data.pageTotal));
+      setLootBoxes(data.lootboxes);
+      setPage(data.page);
     });
-  }, [getResponse, page, instertVisible]);
-
-  // Search
-  const __handleSearch = (event) => {
-    setSearch(event.target.value);
-    if (event.target.value !== "") {
-      let search_results = [];
-      if (selected === "ID") {
-        search_results = lootBoxes.filter((item) =>
-          item.id.toLowerCase().includes(event.target.value.toLowerCase())
-        );
-      } else if (selected === "DATE") {
-        search_results = lootBoxes.filter((item) =>
-          item.date.toLowerCase().includes(event.target.value.toLowerCase())
-        );
-      } else if (selected === "STATUS") {
-        search_results = lootBoxes.filter((item) =>
-          item.status.toLowerCase().includes(event.target.value.toLowerCase())
-        );
-      } else if (selected === "CUSTOMER") {
-        console.log("ccccc");
-        search_results = lootBoxes.filter(
-          (item) =>
-            item.last_name
-              .toLowerCase()
-              .includes(event.target.value.toLowerCase()) ||
-            item.first_name
-              .toLowerCase()
-              .includes(event.target.value.toLowerCase())
-        );
-      } else if (selected === "PRODUCT") {
-        search_results = lootBoxes.filter((item) =>
-          item.product.toLowerCase().includes(event.target.value.toLowerCase())
-        );
-      } else if (selected === "REVENUE") {
-        search_results = lootBoxes.filter((item) =>
-          item.price.toLowerCase().includes(event.target.value.toLowerCase())
-        );
-      }
-      setLootBoxes([...search_results]);
-    } else {
-      __handleChangePage(1);
-    }
-  };
+  }, [getResponse, page, instertVisible, updateVisible]);
 
   // Change Page
   const __handleChangePage = (new_page) => {
@@ -202,6 +247,13 @@ function Orders() {
         handleClose={() => setIntsertVisible(false)}
         isVisble={instertVisible}
       />
+      {updateVisible && (
+        <UpdateModal
+          data={updateData}
+          handleClose={() => setUpdatevisible(false)}
+          isVisble={updateVisible}
+        />
+      )}
       <div className="dashboard-content-container">
         <div className="dashboard-content-header">
           <h2>Loot boxes</h2>
@@ -227,10 +279,23 @@ function Orders() {
               <div className="dashboard-content-search">
                 <input
                   type="text"
-                  value={search}
+                  value={category}
                   placeholder="Search.."
                   className="dashboard-content-input"
-                  onChange={(e) => __handleSearch(e)}
+                  onChange={(e) => setCategory(e.target.value)}
+                />
+              </div>
+            </th>
+            <th>
+            </th>
+            <th>
+              <div className="dashboard-content-search">
+                <input
+                  type="text"
+                  value={lootbox}
+                  placeholder="Search.."
+                  className="dashboard-content-input"
+                  onChange={(e) => setLootbox(e.target.value)}
                 />
               </div>
             </th>
@@ -238,32 +303,19 @@ function Orders() {
               <div className="dashboard-content-search">
                 <input
                   type="text"
-                  value={search}
-                  placeholder="Search.."
+                  value={quantityFrom}
+                  placeholder="from.."
                   className="dashboard-content-input"
-                  onChange={(e) => __handleSearch(e)}
+                  onChange={(e) => setQuantityFrom(e.target.value)}
                 />
               </div>
-            </th>
-            <th>
-              <div className="dashboard-content-search">
+              <div className="dashboard-content-search-2">
                 <input
                   type="text"
-                  value={search}
-                  placeholder="Search.."
+                  value={quantityTo}
+                  placeholder="to.."
                   className="dashboard-content-input"
-                  onChange={(e) => __handleSearch(e)}
-                />
-              </div>
-            </th>
-            <th>
-              <div className="dashboard-content-search">
-                <input
-                  type="text"
-                  value={search}
-                  placeholder="Search.."
-                  className="dashboard-content-input"
-                  onChange={(e) => __handleSearch(e)}
+                  onChange={(e) => setQuantityTo(e.target.value)}
                 />
               </div>
             </th>
@@ -301,7 +353,12 @@ function Orders() {
                     </span>
                   </td>
                   <td>
-                    <div onClick={() => alert("11")}>
+                    <div
+                      onClick={() => {
+                        setUpdateData(order);
+                        setUpdatevisible(true);
+                      }}
+                    >
                       <SmileIcon className="box" htmlColor="gray" />
                     </div>
                   </td>
